@@ -49,6 +49,7 @@ import com.google.copybara.util.console.PrefixConsole;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -396,6 +397,26 @@ public enum WorkflowMode {
       }
     }
 
+    StringBuilder sb = new StringBuilder();
+
+    HashSet<String> authors = new HashSet<>();
+    for(Change<O> c: changes) {
+      sb.append(String.format("  %s\n", c.getMessage()));
+
+      String coAuthorLabel = String.format("Co-authored-by: %s <%s>\n",
+        c.getAuthor().getName(), c.getAuthor().getEmail());
+
+      if(!authors.contains(coAuthorLabel)) {
+        authors.add(coAuthorLabel);
+      }
+    }
+
+    sb.append("\n");
+
+    for(String author: authors) {
+      sb.append(author);
+    }
+
     // --read-config-from-change is not implemented in CHANGE_REQUEST mode
     migrator.migrate(
         runHelper.getResolvedRef(),
@@ -404,7 +425,7 @@ public enum WorkflowMode {
         // Use latest change as the message/author. If it contains multiple changes the user
         // can always use metadata.squash_notes or similar.
         new Metadata(
-            runHelper.getChangeMessage(Iterables.getLast(changes).getMessage()),
+            runHelper.getChangeMessage(sb.toString()),
             runHelper.getFinalAuthor(Iterables.getLast(changes).getAuthor()),
             ImmutableSetMultimap.of()),
         // Squash notes an Skylark API expect last commit to be the first one.
