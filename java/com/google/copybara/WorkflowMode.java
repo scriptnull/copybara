@@ -397,24 +397,39 @@ public enum WorkflowMode {
       }
     }
 
+    // StringBuilder sb = new StringBuilder();
+
+    // HashSet<String> authors = new HashSet<>();
+    // for(Change<O> c: changes) {
+    //   sb.append(String.format("  %s\n", c.getMessage()));
+
+    //   String coAuthorLabel = String.format("Co-authored-by: %s <%s>\n",
+    //     c.getAuthor().getName(), c.getAuthor().getEmail());
+
+    //   if(!authors.contains(coAuthorLabel)) {
+    //     authors.add(coAuthorLabel);
+    //   }
+    // }
+
+    // sb.append("\n");
+
+    // for(String author: authors) {
+    //   sb.append(author);
+    // }
+
+    String[] authors = System.getenv("ALL_COMMIT_AUTHORS").split(",");
     StringBuilder sb = new StringBuilder();
-
-    HashSet<String> authors = new HashSet<>();
-    for(Change<O> c: changes) {
-      sb.append(String.format("  %s\n", c.getMessage()));
-
-      String coAuthorLabel = String.format("Co-authored-by: %s <%s>\n",
-        c.getAuthor().getName(), c.getAuthor().getEmail());
-
-      if(!authors.contains(coAuthorLabel)) {
-        authors.add(coAuthorLabel);
-      }
-    }
-
+    // Two line breaks are needed to render the Co-authored-by trailer
+    // correctly at the end of the commit message
     sb.append("\n");
-
-    for(String author: authors) {
-      sb.append(author);
+    sb.append("\n");
+    for (int i=0; i < authors.length; i++) {
+      String author = authors[i];
+      String coAuthorLabel = String.format("Co-authored-by: %s", author);
+      sb.append(coAuthorLabel);
+      if (i != (authors.length-1)) {
+        sb.append("\n");
+      }
     }
 
     // --read-config-from-change is not implemented in CHANGE_REQUEST mode
